@@ -1,0 +1,1390 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24 – Weihnachten By 4Lanfis</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        pine: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            800: '#166534',
+                            900: '#0f3d24',
+                            950: '#082315',
+                        },
+                        holiday: {
+                            green: '#0f3d24',       /* Edles Dunkles Tannengrün */
+                            lightgreen: '#1b4d32',  /* Etwas helleres Tannengrün */
+                            red: '#991b1b',         /* Edles Bordeauxrot */
+                            gold: '#d97706',        /* Warmes Gold/Bernstein */
+                            lightgold: '#fef3c7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+        .animate-shake {
+            animation: shake 0.35s ease-in-out;
+        }
+
+        /* Subtiler, gemütlicher Schneefall-Effekt */
+        .snowflakes {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+        .snowflake {
+            position: absolute;
+            background: #ffffff;
+            border-radius: 50%;
+            opacity: 0.6;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-10px) translateX(0); }
+            50% { transform: translateY(50vh) translateX(15px); }
+            100% { transform: translateY(105vh) translateX(-15px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-[#071c12] text-slate-100 flex flex-col font-sans antialiased selection:bg-holiday-gold selection:text-slate-900 relative">
+
+    <!-- SCHNEEFALL HINTERGRUND -->
+    <div class="snowflakes" aria-hidden="true" id="snowflakes-container"></div>
+
+    <!-- HEADER -->
+    <header class="bg-[#0f3d24]/90 backdrop-blur-md border-b border-[#1b4d32] sticky top-0 z-25 shadow-lg">
+        <div class="max-w-2xl mx-auto px-4 py-4 relative z-10">
+            <div class="flex items-center justify-between gap-4">
+                <!-- Titel & Untertitel -->
+                <div class="flex items-baseline gap-2.5">
+                    <h1 class="text-2xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                        <span>🎄</span> 24
+                    </h1>
+                    <span class="text-xs font-semibold text-amber-300 bg-amber-950/60 border border-amber-600/40 px-2.5 py-0.5 rounded-full shadow-inner">
+                        By 4Lanfis
+                    </span>
+                </div>
+
+                <!-- Fortschritt & Übersicht -->
+                <div class="flex items-center gap-3">
+                    <span id="header-progress-text" class="text-sm font-medium text-slate-300 tabular-nums">
+                        Level 1 / 100
+                    </span>
+                    <button id="btn-open-overview" type="button" class="px-3.5 py-2 rounded-xl bg-[#1b4d32] hover:bg-[#235c3c] text-white text-sm font-medium transition border border-emerald-700/50 shadow-sm">
+                        Übersicht
+                    </button>
+                </div>
+            </div>
+
+            <!-- Festlicher Fortschrittsbalken -->
+            <div class="w-full h-1.5 bg-emerald-950 rounded-full overflow-hidden mt-3.5 border border-emerald-900">
+                <div id="header-progress-bar" class="h-full bg-amber-500 transition-all duration-300 shadow-[0_0_10px_#d97706]" style="width: 1%;"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- HAUPTBEREICH -->
+    <main class="flex-1 flex items-center justify-center px-4 py-8 sm:py-12 relative z-10">
+        
+        <!-- AKTIVES RÄTSEL (HAUPTKARTE) -->
+        <section id="game-card" class="w-full max-w-xl bg-[#0f3d24]/85 backdrop-blur-md border border-[#1b4d32] rounded-2xl shadow-2xl p-6 sm:p-8 text-slate-100">
+            
+            <!-- Level & Kategorie -->
+            <div class="flex items-center justify-between gap-2 mb-6">
+                <span id="level-number-label" class="text-xs font-semibold uppercase tracking-wider text-emerald-300/80">
+                    Level 1 von 100
+                </span>
+                <div class="flex items-center gap-2">
+                    <span id="level-type-badge" class="text-xs font-medium px-2 py-0.5 rounded-md bg-emerald-900/80 text-emerald-200 border border-emerald-800">
+                        Auswahl
+                    </span>
+                    <span id="level-category-badge" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-amber-500/10 text-amber-300 border border-amber-600/30">
+                        Geocaching
+                    </span>
+                </div>
+            </div>
+
+            <!-- Frage / Rätselaufgabe -->
+            <div class="mb-7">
+                <p id="level-question" class="text-lg sm:text-xl font-medium text-white leading-relaxed whitespace-pre-line">
+                    Lade Level...
+                </p>
+                <!-- Optionaler Code-Block -->
+                <div id="level-code-box" class="hidden mt-4 px-4 py-3 rounded-xl bg-[#071c12] border border-emerald-900/80 font-mono text-base sm:text-lg text-amber-300 tracking-wide break-all select-all shadow-inner">
+                </div>
+            </div>
+
+            <!-- MODUS A: MULTIPLE CHOICE (4 Antwort-Buttons A, B, C, D) -->
+            <div id="mc-container" class="hidden space-y-3 mb-5">
+                <div id="mc-options-grid" class="grid grid-cols-1 gap-2.5">
+                    <!-- Buttons A-D werden per JS erzeugt -->
+                </div>
+                <div class="pt-1 flex justify-end">
+                    <button 
+                        id="btn-hint-mc" 
+                        type="button" 
+                        class="py-2 px-3.5 rounded-xl border border-emerald-800/80 hover:bg-emerald-900/50 text-emerald-200 font-medium text-xs transition"
+                    >
+                        🎁 Hinweis anzeigen
+                    </button>
+                </div>
+            </div>
+
+            <!-- MODUS B: FREITEXT / ZAHLENEINGABE -->
+            <form id="answer-form" class="hidden space-y-4">
+                <div>
+                    <label for="answer-input" class="sr-only">Deine Antwort</label>
+                    <input 
+                        id="answer-input" 
+                        type="text" 
+                        autocomplete="off" 
+                        placeholder="Antwort eingeben..." 
+                        class="w-full px-4 py-3.5 rounded-xl border border-emerald-800 bg-[#071c12] text-white text-base sm:text-lg placeholder:text-emerald-700 focus:outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition shadow-inner"
+                    >
+                </div>
+
+                <!-- Buttons: Prüfen & Hinweis -->
+                <div class="flex items-center gap-3">
+                    <button 
+                        id="btn-submit" 
+                        type="submit" 
+                        class="flex-1 py-3.5 px-5 rounded-xl bg-amber-600 hover:bg-amber-500 active:bg-amber-700 text-slate-950 font-bold text-base transition shadow-lg shadow-amber-900/30"
+                    >
+                        Prüfen
+                    </button>
+                    <button 
+                        id="btn-hint-text" 
+                        type="button" 
+                        class="py-3.5 px-4 rounded-xl border border-emerald-800/80 hover:bg-emerald-900/50 text-emerald-200 font-medium text-sm transition"
+                    >
+                        🎁 Hinweis
+                    </button>
+                </div>
+            </form>
+
+            <!-- Aufklappbarer Hinweis -->
+            <div id="hint-box" class="hidden mt-5 p-4 rounded-xl bg-amber-950/70 border border-amber-600/40 text-sm text-amber-200 shadow-inner">
+                <span class="font-semibold text-amber-300">Weihnachtshinweis:</span> <span id="hint-text"></span>
+            </div>
+
+            <!-- Feedback-Bereich (Richtig / Falsch) -->
+            <div id="feedback-box" class="hidden mt-5 p-4 rounded-xl border text-sm sm:text-base transition-all shadow-md">
+                <div class="flex items-center justify-between gap-3">
+                    <p id="feedback-message" class="font-medium"></p>
+                    <button 
+                        id="btn-next-level" 
+                        type="button" 
+                        class="hidden shrink-0 px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-slate-950 text-sm font-bold transition shadow-md"
+                    >
+                        Weiter &rarr;
+                    </button>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ABSCHLUSSBILDSCHIRM (Nach Level 100 mit exklusivem Lösungswort) -->
+        <section id="victory-card" class="hidden w-full max-w-xl bg-[#0f3d24]/90 backdrop-blur-md border border-amber-600/50 rounded-2xl shadow-2xl p-6 sm:p-10 text-center relative overflow-hidden">
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="w-16 h-16 rounded-2xl bg-amber-500/20 text-amber-300 border border-amber-500/40 flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner">
+                ⭐
+            </div>
+
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight mb-2">
+                Frohe Weihnachten! Alle 100 Level gelöst!
+            </h2>
+            <p class="text-xs font-semibold text-amber-300 mb-2">24 &bull; By 4Lanfis</p>
+            <p class="text-emerald-200 text-sm sm:text-base mb-6">
+                Du hast sämtliche Geocaching-Rätsel, Multiple-Choice-Fragen und Code-Knobeleien meisterhaft bestanden.
+            </p>
+
+            <!-- EXKLUSIVES LÖSUNGSWORT ZUM KOPIEREN -->
+            <div class="mb-6 p-4 rounded-xl bg-[#071c12] border border-amber-500/50 text-left shadow-inner">
+                <div class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-1.5 flex items-center justify-between">
+                    <span>🎁 Exklusives Lösungswort</span>
+                    <span id="copy-feedback" class="text-emerald-400 font-normal hidden">Kopiert!</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input 
+                        id="victory-secret-code" 
+                        type="text" 
+                        readonly 
+                        value="Under Stars, Unwrap Christmas Kindness!" 
+                        class="w-full px-3.5 py-2.5 rounded-lg bg-[#0f3d24] border border-emerald-800 text-amber-200 font-mono text-sm sm:text-base select-all focus:outline-none"
+                    >
+                    <button 
+                        id="btn-copy-secret" 
+                        type="button" 
+                        class="px-4 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-sm transition shrink-0 shadow-md"
+                    >
+                        Kopieren
+                    </button>
+                </div>
+            </div>
+
+            <!-- Statistik -->
+            <div class="grid grid-cols-3 gap-3 mb-6">
+                <div class="p-3.5 rounded-xl bg-[#071c12] border border-emerald-900 shadow-inner">
+                    <div class="text-xl sm:text-2xl font-bold text-amber-400 tabular-nums">100</div>
+                    <div class="text-[11px] font-medium text-emerald-400/80 mt-1">Gelöste Level</div>
+                </div>
+                <div class="p-3.5 rounded-xl bg-[#071c12] border border-emerald-900 shadow-inner">
+                    <div id="stat-hints-used" class="text-xl sm:text-2xl font-bold text-slate-100 tabular-nums">0</div>
+                    <div class="text-[11px] font-medium text-emerald-400/80 mt-1">Geschenke (Hinweise)</div>
+                </div>
+                <div class="p-3.5 rounded-xl bg-[#071c12] border border-emerald-900 shadow-inner">
+                    <div id="stat-wrong-attempts" class="text-xl sm:text-2xl font-bold text-red-400 tabular-nums">0</div>
+                    <div class="text-[11px] font-medium text-emerald-400/80 mt-1">Fehlversuche</div>
+                </div>
+            </div>
+
+            <button 
+                id="btn-victory-restart" 
+                type="button" 
+                class="w-full py-3.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-base transition shadow-lg shadow-amber-900/30"
+            >
+                Neues Abenteuer starten
+            </button>
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="py-5 text-center text-xs text-emerald-400/70 relative z-10">
+        24 &bull; Weihnachtsedition &bull; By 4Lanfis
+    </footer>
+
+    <!-- MODAL: LEVEL-ÜBERSICHT -->
+    <div id="overview-modal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-[#0f3d24] border border-[#1b4d32] rounded-2xl max-w-lg w-full max-h-[88vh] flex flex-col shadow-2xl overflow-hidden text-slate-100">
+            
+            <!-- Modal Header -->
+            <div class="px-5 py-4 border-b border-[#1b4d32] flex items-center justify-between bg-[#071c12]/60">
+                <div>
+                    <h3 class="text-lg font-bold text-white flex items-center gap-2">🎄 Level-Übersicht</h3>
+                    <p id="overview-subtitle" class="text-xs text-emerald-300">0 von 100 Leveln gelöst</p>
+                </div>
+                <button id="btn-close-overview" type="button" class="p-2 rounded-xl text-emerald-300 hover:text-white hover:bg-emerald-900/60 transition" aria-label="Schließen">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Tester-Modus Schalter -->
+            <div class="px-5 py-3 bg-[#071c12] border-b border-[#1b4d32] flex items-center justify-between">
+                <div>
+                    <div class="text-sm font-medium text-white">Weihnachts-Tester-Modus</div>
+                    <div class="text-xs text-emerald-400">Alle 100 Level sofort freischalten</div>
+                </div>
+                <button id="btn-toggle-tester" type="button" role="switch" aria-checked="false" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent bg-emerald-950 transition-colors duration-200 focus:outline-none">
+                    <span id="tester-knob" class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-amber-400 shadow transition duration-200 translate-x-0"></span>
+                </button>
+            </div>
+
+            <!-- 10x10 Level-Grid -->
+            <div id="overview-grid" class="p-5 overflow-y-auto grid grid-cols-5 sm:grid-cols-10 gap-2">
+                <!-- Wird dynamisch befüllt -->
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="px-5 py-3.5 border-t border-[#1b4d32] bg-[#071c12]/60 flex items-center justify-between">
+                <span class="text-xs text-emerald-400/80">Speicherung erfolgt lokal</span>
+                <button id="btn-ask-reset" type="button" class="text-xs font-semibold text-red-400 hover:text-red-300 px-2.5 py-1.5 rounded-lg hover:bg-red-950/40 transition">
+                    Fortschritt löschen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: RESET BESTÄTIGUNG -->
+    <div id="reset-modal" class="fixed inset-0 z-50 bg-slate-950/80 hidden flex items-center justify-center p-4">
+        <div class="bg-[#0f3d24] border border-red-900/50 rounded-2xl max-w-sm w-full p-6 shadow-2xl text-slate-100">
+            <h4 class="text-base font-bold text-white mb-2">Fortschritt wirklich löschen?</h4>
+            <p class="text-sm text-emerald-200 mb-6">
+                Alle gelösten Level und Statistiken werden zurückgesetzt und du beginnst wieder bei Level 1.
+            </p>
+            <div class="flex justify-end gap-2.5">
+                <button id="btn-cancel-reset" type="button" class="px-4 py-2 rounded-xl bg-emerald-950 hover:bg-emerald-900 text-emerald-200 text-sm font-medium transition border border-emerald-800">
+                    Abbrechen
+                </button>
+                <button id="btn-confirm-reset" type="button" class="px-4 py-2 rounded-xl bg-red-700 hover:bg-red-600 text-white text-sm font-semibold transition shadow-md">
+                    Zurücksetzen
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPIELLOGIK & 100 HANDGEFERTIGTE LEVEL -->
+    <script>
+        // Schneeflocken beim Laden erzeugen
+        window.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('snowflakes-container');
+            const count = 35;
+            for (let i = 0; i < count; i++) {
+                const flake = document.createElement('div');
+                flake.className = 'snowflake';
+                const size = Math.random() * 4 + 2 + 'px';
+                flake.style.width = size;
+                flake.style.height = size;
+                flake.style.left = Math.random() * 100 + 'vw';
+                flake.style.animationDuration = (Math.random() * 10 + 6) + 's';
+                flake.style.animationDelay = (Math.random() * 5) + 's';
+                container.appendChild(flake);
+            }
+        });
+
+        // ============================================================
+        // 1. ALLE 100 HANDGEFERTIGTEN LEVEL
+        // ============================================================
+        const LEVELS = [
+            // --- LEVEL 1 bis 10 ---
+            {
+                id: 1, type: "mc", category: "Geocaching",
+                question: "Wofür steht die bekannteste Abkürzung in Geocaching-Logs: TFTC?",
+                options: ["Time For The Cache", "Thanks For The Cache", "Tools For Treasure Caching", "Trackable Found Today"],
+                correctIndex: 1, hint: "Englisch für 'Danke für den Cache'."
+            },
+            {
+                id: 2, type: "text", category: "Worträtsel",
+                question: "Lies dieses Wort rückwärts und gib es ein:",
+                code: "E H C A C O E G",
+                answers: ["geocache"], hint: "Beginne rechts."
+            },
+            {
+                id: 3, type: "mc", category: "Geocaching",
+                question: "Wie nennt man uneingeweihte Passanten im Geocaching?",
+                options: ["Muggels", "Scouts", "Späher", "Wanderer"],
+                correctIndex: 0, hint: "Bekannt auch aus Harry Potter."
+            },
+            {
+                id: 4, type: "mc", category: "Logik",
+                question: "Ein Bauer hat 17 Schafe. Alle außer 9 laufen davon. Wie viele Schafe bleiben?",
+                options: ["8 Schafe", "17 Schafe", "9 Schafe", "Keine"],
+                correctIndex: 2, hint: "Lies genau: 'Alle außer 9 laufen davon'."
+            },
+            {
+                id: 5, type: "text", category: "Code",
+                question: "Wandle diese Römische Zahl in eine Zahl um:",
+                code: "X L I I",
+                answers: ["42"], hint: "XL = 40, II = 2."
+            },
+            {
+                id: 6, type: "mc", category: "Geocaching",
+                question: "Wie heißt der kleine, durchsichtige Kunststoff-Rohling, der oft als Cache dient?",
+                options: ["Nano-Röhre", "PETling", "Munibox", "Filmdose"],
+                correctIndex: 1, hint: "Zusammengesetzt aus PET und -ling."
+            },
+            {
+                id: 7, type: "mc", category: "Wissen",
+                question: "Wie viele Kontinente gibt es auf der Erde nach gängiger Zählweise?",
+                options: ["5", "6", "7", "8"],
+                correctIndex: 2, hint: "Europa, Asien, Afrika, Nord- & Südamerika, Australien, Antarktis."
+            },
+            {
+                id: 8, type: "text", category: "Code",
+                question: "A=1, B=2 ... Z=26. Welches Wort ergibt diese Zahlenfolge?",
+                code: "3 - 8 - 1 - 15 - 19",
+                answers: ["chaos"], hint: "Der frühere Name dieser App."
+            },
+            {
+                id: 9, type: "mc", category: "Geocaching",
+                question: "Was bedeutet die Abkürzung FTF bei einem neuen Cache?",
+                options: ["Found Two Finals", "First To Find", "Follow The Forest", "Free Treasure Found"],
+                correctIndex: 1, hint: "Englisch für 'Als Erster gefunden'."
+            },
+            {
+                id: 10, type: "mc", category: "Logik",
+                question: "Welche Zahl setzt die Reihe fort? 2, 4, 8, 16, 32, ?",
+                options: ["48", "54", "64", "96"],
+                correctIndex: 2, hint: "Jede Zahl wird verdoppelt."
+            },
+
+            // --- LEVEL 11 bis 20 ---
+            {
+                id: 11, type: "text", category: "Code",
+                question: "Übersetze dieses weltbekannte Notsignal im Morsecode:",
+                code: "... --- ...",
+                answers: ["sos"], hint: "Drei kurz, drei lang, drei kurz."
+            },
+            {
+                id: 12, type: "mc", category: "Geocaching",
+                question: "Welcher Cache-Typ hat auf der Karte ein blaues Fragezeichen?",
+                options: ["Traditional", "Multi-Cache", "Mystery-Cache", "EarthCache"],
+                correctIndex: 2, hint: "Man muss erst ein Rätsel knacken."
+            },
+            {
+                id: 13, type: "mc", category: "Wissen",
+                question: "Welcher Planet wird wegen seiner Eisenoxid-Oberfläche 'Roter Planet' genannt?",
+                options: ["Venus", "Mars", "Jupiter", "Merkur"],
+                correctIndex: 1, hint: "Der vierte Planet der Sonne."
+            },
+            {
+                id: 14, type: "text", category: "Logik",
+                question: "Fibonacci-Reihe: Welche Zahl fehlt?\n1, 1, 2, 3, 5, 8, 13, ?",
+                answers: ["21"], hint: "8 + 13."
+            },
+            {
+                id: 15, type: "mc", category: "Geocaching",
+                question: "Wofür steht 'BYOP' in einer Cache-Beschreibung?",
+                options: ["Bring Your Own Pen", "Be Careful On Path", "Behind Your Own Place", "Box Under Old Pine"],
+                correctIndex: 0, hint: "Kein Stift in der Dose."
+            },
+            {
+                id: 16, type: "text", category: "Worträtsel",
+                question: "Anagramm – ordne zu einem Orientierungs-Werkzeug:",
+                code: "S S A P M O K",
+                answers: ["kompass"], hint: "Zeigt immer nach Norden."
+            },
+            {
+                id: 17, type: "mc", category: "Geocaching",
+                question: "Wie nennt man den winzigen, magnetischen Behälter (fingernagelgroß)?",
+                options: ["Regular", "Small", "Nano", "Large"],
+                correctIndex: 2, hint: "Kleiner als ein Micro."
+            },
+            {
+                id: 18, type: "mc", category: "Logik",
+                question: "Was wird beim Trocknen immer nasser?",
+                options: ["Ein Schwamm", "Ein Handtuch", "Der Waldboden", "Ein Regenschirm"],
+                correctIndex: 1, hint: "Wird nach dem Duschen genutzt."
+            },
+            {
+                id: 19, type: "text", category: "Code",
+                question: "Welcher Dezimalzahl entspricht diese Binärzahl?",
+                code: "1 0 1 0",
+                answers: ["10"], hint: "8 + 0 + 2 + 0."
+            },
+            {
+                id: 20, type: "mc", category: "Wissen",
+                question: "Wie viele Bundesländer hat Deutschland?",
+                options: ["14", "15", "16", "17"],
+                correctIndex: 2, hint: "Von Bayern bis Hamburg."
+            },
+
+            // --- LEVEL 21 bis 30 ---
+            {
+                id: 21, type: "mc", category: "Geocaching",
+                question: "Wie viel Meter Mindestabstand müssen zwei physische Stationen haben?",
+                options: ["50 Meter", "100 Meter", "161 Meter", "250 Meter"],
+                correctIndex: 2, hint: "Genau 0,1 amerikanische Meilen."
+            },
+            {
+                id: 22, type: "text", category: "Code",
+                question: "Caesar (+1): Jeder Buchstabe +1 verschoben. Entschlüssele:",
+                code: "M P H C V D I",
+                answers: ["logbuch"], hint: "M -> L, P -> O..."
+            },
+            {
+                id: 23, type: "mc", category: "Wissen",
+                question: "Wie heißt die Hauptstadt von Australien?",
+                options: ["Sydney", "Melbourne", "Canberra", "Perth"],
+                correctIndex: 2, hint: "Nicht Sydney, sondern eine geplante Planstadt."
+            },
+            {
+                id: 24, type: "mc", category: "Logik",
+                question: "Welche Zahl passt nicht in diese Reihe? 3, 5, 7, 9, 11, 13",
+                options: ["3", "7", "9", "13"],
+                correctIndex: 2, hint: "Alle anderen sind Primzahlen."
+            },
+            {
+                id: 25, type: "text", category: "Geocaching",
+                question: "Mit welchen zwei Buchstaben beginnt jeder offizielle Cache-Code?",
+                answers: ["gc"], hint: "Abkürzung für GeoCaching."
+            },
+            {
+                id: 26, type: "mc", category: "Worträtsel",
+                question: "Anfangsbuchstaben: Wald – Eiche – Gras – Pilz – Unterholz – Natur – Kiefern – Tannenzapfen?",
+                options: ["Waldpfad", "Wegpunkt", "Waldhaus", "Werkzeug"],
+                correctIndex: 1, hint: "W - E - G - P - U - N - K - T."
+            },
+            {
+                id: 27, type: "text", category: "Code",
+                question: "Buchstabenwortwert (A=1 ... Z=26) von 'BAUM':",
+                answers: ["37"], hint: "2 + 1 + 21 + 13."
+            },
+            {
+                id: 28, type: "mc", category: "Geocaching",
+                question: "Welche Terrain-Wertung (T1 bis T5) erfordert Kletterausrüstung oder Boot?",
+                options: ["T2.5", "T3.5", "T4.0", "T5.0"],
+                correctIndex: 3, hint: "Die maximale Stufe."
+            },
+            {
+                id: 29, type: "mc", category: "Logik",
+                question: "5 Maschinen brauchen 5 Minuten für 5 Knöpfe. Wie lange brauchen 100 Maschinen für 100 Knöpfe?",
+                options: ["1 Minute", "5 Minuten", "20 Minuten", "100 Minuten"],
+                correctIndex: 1, hint: "Parallele Arbeit."
+            },
+            {
+                id: 30, type: "mc", category: "Wissen",
+                question: "Welches chemische Element verbirgt sich hinter 'Au'?",
+                options: ["Silber", "Aluminium", "Gold", "Kupfer"],
+                correctIndex: 2, hint: "Vom lateinischen 'Aurum'."
+            },
+
+            // --- LEVEL 31 bis 40 ---
+            {
+                id: 31, type: "mc", category: "Geocaching",
+                question: "Was bedeutet 'DNF' im Log, wenn man die Dose nicht fand?",
+                options: ["Do Not Follow", "Did Not Find", "Down Near Forest", "Direct North Found"],
+                correctIndex: 1, hint: "Nicht gefunden."
+            },
+            {
+                id: 32, type: "text", category: "Code",
+                question: "Römische Zahl in Dezimalzahl umwandeln:",
+                code: "C X C I X",
+                answers: ["199"], hint: "100 + 90 + 9."
+            },
+            {
+                id: 33, type: "mc", category: "Wissen",
+                question: "Wie viele Minuten hat ein Tag mit 24 Stunden?",
+                options: ["1.240 Minuten", "1.440 Minuten", "1.600 Minuten", "2.400 Minuten"],
+                correctIndex: 1, hint: "24 × 60."
+            },
+            {
+                id: 34, type: "text", category: "Worträtsel",
+                question: "Anagramm – klassisches Versteck im Gelände:",
+                code: "E K C Ü R B",
+                answers: ["brücke", "bruecke"], hint: "Führt über Flüsse."
+            },
+            {
+                id: 35, type: "mc", category: "Geocaching",
+                question: "Wie nennt man Reisende mit Tracking-Code, die von Cache zu Cache wandern?",
+                options: ["Logstreifen", "Travel Bugs / Trackables", "Spoiler", "Waypoints"],
+                correctIndex: 1, hint: "Oft als 'TB' abgekürzt."
+            },
+            {
+                id: 36, type: "text", category: "Logik",
+                question: "Quadratzahlen-Reihe fortsetzen:\n1, 4, 9, 16, 25, 36, ?",
+                answers: ["49"], hint: "7 × 7."
+            },
+            {
+                id: 37, type: "mc", category: "Geocaching",
+                question: "Wie nennt man ein Foto im Listing, das das exakte Versteck verrät?",
+                options: ["Avatar", "Spoilerbild", "Banner", "Trackable"],
+                correctIndex: 1, hint: "Spoilern."
+            },
+            {
+                id: 38, type: "text", category: "Code",
+                question: "Entschlüssele dieses Wort im Morsecode:",
+                code: "-.-. .- -.-. .... .",
+                answers: ["cache"], hint: "C - A - C - H - E."
+            },
+            {
+                id: 39, type: "mc", category: "Logik",
+                question: "Du überholst in einem Wettlauf den Zweitplatzierten. Welchen Platz hast du?",
+                options: ["1. Platz", "2. Platz", "3. Platz", "Letzter Platz"],
+                correctIndex: 1, hint: "Du nimmst seinen Platz ein."
+            },
+            {
+                id: 40, type: "mc", category: "Wissen",
+                question: "Welches ist der längste Fluss, der durch Deutschland fließt?",
+                options: ["Elbe", "Weser", "Rhein", "Main"],
+                correctIndex: 2, hint: "Fließt durch Köln."
+            },
+
+            // --- LEVEL 41 bis 50 ---
+            {
+                id: 41, type: "text", category: "Code",
+                question: "Binär zu Dezimal:",
+                code: "0 0 0 1 1 1 1 1",
+                answers: ["31"], hint: "16 + 8 + 4 + 2 + 1."
+            },
+            {
+                id: 42, type: "mc", category: "Geocaching",
+                question: "Wie heißt die Firma, die geocaching.com betreibt?",
+                options: ["Trailhead Labs", "Groundspeak", "EarthFinder", "CacheCorp"],
+                correctIndex: 1, hint: "Groundspeak."
+            },
+            {
+                id: 43, type: "mc", category: "Wissen",
+                question: "Wie viele Zähne hat ein erwachsener Mensch (inkl. Weisheitszähnen)?",
+                options: ["28", "30", "32", "36"],
+                correctIndex: 2, hint: "16 oben, 16 unten."
+            },
+            {
+                id: 44, type: "text", category: "Worträtsel",
+                question: "Rückwärts geschrieben – ein beliebtes Versteck im Wald:",
+                code: "L E Z R U W M U A B",
+                answers: ["baumwurzel"], hint: "Unten am Stamm."
+            },
+            {
+                id: 45, type: "mc", category: "Geocaching",
+                question: "Welcher Cache-Typ hat keine physische Dose, vermittelt aber Geologie?",
+                options: ["Multi-Cache", "EarthCache", "Letterbox", "Wherigo"],
+                correctIndex: 1, hint: "EarthCache."
+            },
+            {
+                id: 46, type: "text", category: "Logik",
+                question: "Welche Zahl fehlt?\n100, 95, 85, 70, 50, ?",
+                answers: ["25"], hint: "Abstand wächst um 5."
+            },
+            {
+                id: 47, type: "mc", category: "Geocaching",
+                question: "Wie nennt man kleine Tauschgegenstände (Figuren, Pins) in Caches?",
+                options: ["SWAG", "DNF", "TFTC", "BYOP"],
+                correctIndex: 0, hint: "SWAG."
+            },
+            {
+                id: 48, type: "text", category: "Code",
+                question: "Caesar (+3): Entschlüssele dieses Wort:",
+                code: "V W H L Q",
+                answers: ["stein"], hint: "V(-3) = S..."
+            },
+            {
+                id: 49, type: "mc", category: "Wissen",
+                question: "In welchem Jahr fiel die Berliner Mauer?",
+                options: ["1987", "1989", "1990", "1991"],
+                correctIndex: 1, hint: "9. November 1989."
+            },
+            {
+                id: 50, type: "mc", category: "Logik",
+                question: "Halbzeit! Was ergibt die Rechnung: Die Hälfte von 2 plus 2?",
+                options: ["2", "3", "4", "1,5"],
+                correctIndex: 1, hint: "(2 / 2) + 2."
+            },
+
+            // --- LEVEL 51 bis 60 ---
+            {
+                id: 51, type: "text", category: "Worträtsel",
+                question: "Anagramm – hält Dosen an Leitplanken:",
+                code: "T E N G A M",
+                answers: ["magnet"], hint: "Magnet."
+            },
+            {
+                id: 52, type: "mc", category: "Geocaching",
+                question: "Welche Himmelsrichtung liegt auf dem Kompass bei 180 Grad?",
+                options: ["Norden", "Osten", "Süden", "Westen"],
+                correctIndex: 2, hint: "Gegenüber von Norden."
+            },
+            {
+                id: 53, type: "mc", category: "Geocaching",
+                question: "Wonach sucht man bei einem Nachtcache mit der Taschenlampe an Bäumen?",
+                options: ["Moos", "Reflektoren", "Vogelnester", "Baumharz"],
+                correctIndex: 1, hint: "Reflektoren."
+            },
+            {
+                id: 54, type: "text", category: "Code",
+                question: "Buchstabenwerte (A=1 ... Z=26): Welches Wort?",
+                code: "23 - 1 - 12 - 4",
+                answers: ["wald"], hint: "W-A-L-D."
+            },
+            {
+                id: 55, type: "mc", category: "Logik",
+                question: "Buch + Lesezeichen = 1,10 €. Buch kostet 1,00 € mehr als Lesezeichen. Was kostet das Lesezeichen?",
+                options: ["10 Cent", "5 Cent", "15 Cent", "1 Cent"],
+                correctIndex: 1, hint: "1,05 € + 0,05 €."
+            },
+            {
+                id: 56, type: "mc", category: "Wissen",
+                question: "Welches ist das flächenmäßig größte Land der Erde?",
+                options: ["Kanada", "China", "USA", "Russland"],
+                correctIndex: 3, hint: "Russland."
+            },
+            {
+                id: 57, type: "text", category: "Code",
+                question: "Römische Zahl in Dezimalzahl:",
+                code: "M C M X C",
+                answers: ["1990"], hint: "1000 + 900 + 90."
+            },
+            {
+                id: 58, type: "mc", category: "Wissen",
+                question: "Wie viele Sekunden hat eine Viertelstunde?",
+                options: ["600 Sekunden", "750 Sekunden", "900 Sekunden", "1.200 Sekunden"],
+                correctIndex: 2, hint: "15 × 60."
+            },
+            {
+                id: 59, type: "text", category: "Worträtsel",
+                question: "Lies rückwärts:",
+                code: "N E N N U R B",
+                answers: ["brunnen"], hint: "Brunnen."
+            },
+            {
+                id: 60, type: "mc", category: "Logik",
+                question: "Dreieckszahlen-Reihe: 1, 3, 6, 10, 15, 21, ?",
+                options: ["25", "27", "28", "30"],
+                correctIndex: 2, hint: "+7 = 28."
+            },
+
+            // --- LEVEL 61 bis 70 ---
+            {
+                id: 61, type: "mc", category: "Geocaching",
+                question: "Wie nennt man den letzten Punkt eines Multi-Caches mit der Dose?",
+                options: ["Stage 1", "Final", "Parking", "Reference"],
+                correctIndex: 1, hint: "Das Final."
+            },
+            {
+                id: 62, type: "text", category: "Code",
+                question: "Morsecode übersetzen:",
+                code: "-... .- ..- --",
+                answers: ["baum"], hint: "B-A-U-M."
+            },
+            {
+                id: 63, type: "mc", category: "Wissen",
+                question: "Welches ist das größte lebende Säugetier der Erde?",
+                options: ["Afrikanischer Elefant", "Blauwal", "Pottwal", "Giraffe"],
+                correctIndex: 1, hint: "Blauwal."
+            },
+            {
+                id: 64, type: "mc", category: "Logik",
+                question: "Je mehr man davon wegnimmt, desto größer wird es. Was ist das?",
+                options: ["Ein Berg", "Ein Loch", "Ein Schatten", "Ein Geheimnis"],
+                correctIndex: 1, hint: "Ein Loch."
+            },
+            {
+                id: 65, type: "text", category: "Code",
+                question: "Hexadezimal '10' in Dezimal:",
+                answers: ["16"], hint: "1 × 16."
+            },
+            {
+                id: 66, type: "mc", category: "Geocaching",
+                question: "Wofür steht das 'D' in der D/T-Wertung?",
+                options: ["Distance", "Difficulty", "Direction", "Depth"],
+                correctIndex: 1, hint: "Difficulty (Schwierigkeit)."
+            },
+            {
+                id: 67, type: "text", category: "Worträtsel",
+                question: "Anagramm – natürlicher Hohlraum im Fels:",
+                code: "E L H Ö H",
+                answers: ["höhle", "hoehle"], hint: "Höhle."
+            },
+            {
+                id: 68, type: "mc", category: "Wissen",
+                question: "Wie heißt die Hauptstadt von Kanada?",
+                options: ["Toronto", "Vancouver", "Montreal", "Ottawa"],
+                correctIndex: 3, hint: "Ottawa."
+            },
+            {
+                id: 69, type: "text", category: "Code",
+                question: "Buchstabenwortwert von 'GPS':",
+                answers: ["42"], hint: "7 + 16 + 19."
+            },
+            {
+                id: 70, type: "mc", category: "Logik",
+                question: "„Geschwister habe ich keine, aber der Vater dieses Mannes ist der Sohn meines Vaters.“ Wen zeigt das Foto?",
+                options: ["Seinen Vater", "Seinen Großvater", "Seinen Sohn", "Seinen Onkel"],
+                correctIndex: 2, hint: "Seinen Sohn."
+            },
+
+            // --- LEVEL 71 bis 80 ---
+            {
+                id: 71, type: "mc", category: "Geocaching",
+                question: "ROT13-Verschlüsselung von 'ONAX':",
+                options: ["BAUM", "BANK", "BERG", "BURG"],
+                correctIndex: 1, hint: "O->B, N->A, A->N, X->K."
+            },
+            {
+                id: 72, type: "text", category: "Code",
+                question: "Binär zu Dezimal:",
+                code: "0 1 0 0 0 0 0 0",
+                answers: ["64"], hint: "2^6."
+            },
+            {
+                id: 73, type: "mc", category: "Wissen",
+                question: "Wie viele Farben ordnete Newton einem klassischen Regenbogen zu?",
+                options: ["5", "6", "7", "8"],
+                correctIndex: 2, hint: "7 Farben."
+            },
+            {
+                id: 74, type: "mc", category: "Logik",
+                question: "Welche Primzahl fehlt? 2, 3, 5, 7, 11, 13, 17, ?",
+                options: ["18", "19", "21", "23"],
+                correctIndex: 1, hint: "19."
+            },
+            {
+                id: 75, type: "mc", category: "Geocaching",
+                question: "In welchem Jahr wurde der erste Geocache der Welt versteckt?",
+                options: ["1998", "2000", "2002", "2004"],
+                correctIndex: 1, hint: "Im Mai 2000."
+            },
+            {
+                id: 76, type: "text", category: "Worträtsel",
+                question: "Lies rückwärts:",
+                code: "E L L E P A K",
+                answers: ["kapelle"], hint: "Kapelle."
+            },
+            {
+                id: 77, type: "text", category: "Code",
+                question: "Caesar (-1): Entschlüssele:",
+                code: "G D K R D M",
+                answers: ["felsen"], hint: "G(-1) = F..."
+            },
+            {
+                id: 78, type: "mc", category: "Wissen",
+                question: "Welches Gas nehmen Pflanzen für die Fotosynthese auf?",
+                options: ["Sauerstoff (O2)", "Stickstoff (N2)", "Kohlenstoffdioxid (CO2)", "Helium (He)"],
+                correctIndex: 2, hint: "CO2."
+            },
+            {
+                id: 79, type: "mc", category: "Logik",
+                question: "Wie viele Monate im Jahr haben 28 Tage?",
+                options: ["Nur 1", "6 Monate", "11 Monate", "Alle 12 Monate"],
+                correctIndex: 3, hint: "Jeder Monat hat mindestens 28 Tage."
+            },
+            {
+                id: 80, type: "mc", category: "Geocaching",
+                question: "Wie nennt man den Ersteller eines Geocaches?",
+                options: ["Reviewer", "Owner", "Finder", "Logger"],
+                correctIndex: 1, hint: "Owner."
+            },
+
+            // --- LEVEL 81 bis 90 ---
+            {
+                id: 81, type: "text", category: "Code",
+                question: "Römische Zahl in Dezimal:",
+                code: "D C L X V I",
+                answers: ["666"], hint: "500 + 100 + 50 + 10 + 5 + 1."
+            },
+            {
+                id: 82, type: "mc", category: "Geocaching",
+                question: "Wer prüft neue Geocaches vor der Freischaltung auf Richtlinien?",
+                options: ["Reviewer", "Muggels", "Trackables", "Owner"],
+                correctIndex: 0, hint: "Reviewer."
+            },
+            {
+                id: 83, type: "mc", category: "Wissen",
+                question: "Wie heißt der höchste Berg der Erde?",
+                options: ["K2", "Mont Blanc", "Mount Everest", "Kilimandscharo"],
+                correctIndex: 2, hint: "Mount Everest."
+            },
+            {
+                id: 84, type: "text", category: "Logik",
+                question: "Einstellige Quersumme von 789:",
+                answers: ["6"], hint: "7+8+9 = 24 -> 2+4 = 6."
+            },
+            {
+                id: 85, type: "mc", category: "Geocaching",
+                question: "Welche Kompass-Gradzahl entspricht exakt Westen?",
+                options: ["90°", "180°", "270°", "360°"],
+                correctIndex: 2, hint: "270°."
+            },
+            {
+                id: 86, type: "text", category: "Code",
+                question: "Morsecode übersetzen:",
+                code: "..-. .. -. .- .-..",
+                answers: ["final"], hint: "F-I-N-A-L."
+            },
+            {
+                id: 87, type: "mc", category: "Wissen",
+                question: "Wie viele Ecken hat ein klassischer Würfel?",
+                options: ["6", "8", "10", "12"],
+                correctIndex: 1, hint: "8 Ecken."
+            },
+            {
+                id: 88, type: "mc", category: "Logik",
+                question: "Welche Zahl fehlt? 2, 6, 12, 20, 30, ?",
+                options: ["36", "40", "42", "48"],
+                correctIndex: 2, hint: "6 × 7 = 42."
+            },
+            {
+                id: 89, type: "mc", category: "Worträtsel",
+                question: "Welches Wort wird kürzer, wenn man zwei Buchstaben anhängt?",
+                options: ["Lang", "Kurz", "Klein", "Winzig"],
+                correctIndex: 1, hint: "Kurz -> kürzer."
+            },
+            {
+                id: 90, type: "mc", category: "Geocaching",
+                question: "Wie nennt man eine robuste Metallkiste aus Militärbeständen?",
+                options: ["PETling", "Munitionskiste", "Filmdose", "Nanoröhre"],
+                correctIndex: 1, hint: "Ammo Box / Munitionskiste."
+            },
+
+            // --- LEVEL 91 bis 100 ---
+            {
+                id: 91, type: "text", category: "Code",
+                question: "Hexadezimal 'FF' in Dezimal:",
+                answers: ["255"], hint: "15 × 16 + 15."
+            },
+            {
+                id: 92, type: "mc", category: "Wissen",
+                question: "In welcher europäischen Hauptstadt steht der Eiffelturm?",
+                options: ["London", "Madrid", "Paris", "Rom"],
+                correctIndex: 2, hint: "Paris."
+            },
+            {
+                id: 93, type: "mc", category: "Logik",
+                question: "Wenn gestern morgen gewesen wäre, wäre heute Freitag. Welcher Wochentag ist heute?",
+                options: ["Mittwoch", "Freitag", "Samstag", "Sonntag"],
+                correctIndex: 3, hint: "Sonntag."
+            },
+            {
+                id: 94, type: "text", category: "Geocaching",
+                question: "Buchstabenwortwert von 'FUND':",
+                answers: ["45"], hint: "6 + 21 + 14 + 4."
+            },
+            {
+                id: 95, type: "text", category: "Worträtsel",
+                question: "Lies rückwärts:",
+                code: "T Z T A L P Z T A H C S",
+                answers: ["schatzplatz"], hint: "Schatzplatz."
+            },
+            {
+                id: 96, type: "mc", category: "Code",
+                question: "Welcher Dezimalzahl entspricht 0110 0100?",
+                options: ["64", "96", "100", "128"],
+                correctIndex: 2, hint: "64 + 32 + 4 = 100."
+            },
+            {
+                id: 97, type: "mc", category: "Wissen",
+                question: "Wie viele Nullen hat eine Milliarde?",
+                options: ["6", "8", "9", "12"],
+                correctIndex: 2, hint: "9 Nullen."
+            },
+            {
+                id: 98, type: "mc", category: "Logik",
+                question: "Welche Zahl fehlt? 3, 6, 11, 18, 27, ?",
+                options: ["36", "38", "40", "42"],
+                correctIndex: 1, hint: "+11 = 38."
+            },
+            {
+                id: 99, type: "mc", category: "Geocaching",
+                question: "Vorletztes Level! Wofür steht 'PM' bei geocaching.com?",
+                options: ["Public Map", "Premium Member", "Private Mystery", "Point Marker"],
+                correctIndex: 1, hint: "Premium Member."
+            },
+            {
+                id: 100, type: "text", category: "Finale",
+                question: "Das Weihnachtsfinale von 24!\nAddiere den Buchstabenwortwert von 'SIEG' (S=19, I=9, E=5, G=7) zur Levelnummer (100).",
+                code: "19 + 9 + 5 + 7 + 100 = ?",
+                answers: ["140"], hint: "40 + 100."
+            }
+        ];
+
+        // ============================================================
+        // 2. SPIELSTAND & LOCALSTORAGE
+        // ============================================================
+        const STORAGE_KEY = "app_24_christmas_4lanfis_v1";
+
+        const defaultState = {
+            currentLevel: 1,
+            solvedLevels: [],
+            hintsUsedCount: 0,
+            hintedLevels: [],
+            wrongAttempts: 0,
+            testerMode: false,
+            completed: false
+        };
+
+        let state = loadState();
+        let autoAdvanceTimer = null;
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) return { ...defaultState, ...JSON.parse(raw) };
+            } catch (e) {}
+            return { ...defaultState };
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {}
+        }
+
+        function normalize(str) {
+            return String(str).trim().toLowerCase().replace(/\s+/g, " ");
+        }
+
+        function getMaxUnlockedLevel() {
+            if (state.testerMode) return 100;
+            if (state.solvedLevels.length === 0) return 1;
+            return Math.min(100, Math.max(...state.solvedLevels) + 1);
+        }
+
+        function updateHeader() {
+            const solvedCount = state.solvedLevels.length;
+            const displayLvl = state.completed ? 100 : state.currentLevel;
+            const percent = Math.max(1, Math.round((solvedCount / 100) * 100));
+
+            document.getElementById("header-progress-text").textContent = `Level ${displayLvl} / 100`;
+            document.getElementById("header-progress-bar").style.width = `${percent}%`;
+        }
+
+        function showVictoryScreen() {
+            if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+            state.completed = true;
+            saveState();
+            updateHeader();
+
+            document.getElementById("game-card").classList.add("hidden");
+            document.getElementById("victory-card").classList.remove("hidden");
+
+            document.getElementById("stat-hints-used").textContent = state.hintsUsedCount;
+            document.getElementById("stat-wrong-attempts").textContent = state.wrongAttempts;
+        }
+
+        function toggleHint() {
+            const lvl = LEVELS[state.currentLevel - 1];
+            const hintBox = document.getElementById("hint-box");
+            const isHidden = hintBox.classList.contains("hidden");
+
+            if (isHidden) {
+                hintBox.classList.remove("hidden");
+                if (!state.hintedLevels.includes(lvl.id)) {
+                    state.hintedLevels.push(lvl.id);
+                    state.hintsUsedCount += 1;
+                    saveState();
+                }
+            } else {
+                hintBox.classList.add("hidden");
+            }
+        }
+
+        function renderLevel(levelNum) {
+            if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+
+            state.completed = false;
+            state.currentLevel = Math.min(100, Math.max(1, levelNum));
+            saveState();
+
+            document.getElementById("victory-card").classList.add("hidden");
+            document.getElementById("game-card").classList.remove("hidden");
+
+            const lvl = LEVELS[state.currentLevel - 1];
+            const isSolved = state.solvedLevels.includes(lvl.id);
+            const isMC = lvl.type === "mc";
+
+            updateHeader();
+            document.getElementById("level-number-label").textContent = `Level ${lvl.id} von 100`;
+            document.getElementById("level-type-badge").textContent = isMC ? "Multiple Choice" : "Eingabe";
+            document.getElementById("level-category-badge").textContent = lvl.category;
+            document.getElementById("level-question").textContent = lvl.question;
+
+            const codeBox = document.getElementById("level-code-box");
+            if (lvl.code) {
+                codeBox.textContent = lvl.code;
+                codeBox.classList.remove("hidden");
+            } else {
+                codeBox.classList.add("hidden");
+            }
+
+            const hintBox = document.getElementById("hint-box");
+            document.getElementById("hint-text").textContent = lvl.hint;
+            if (state.hintedLevels.includes(lvl.id)) {
+                hintBox.classList.remove("hidden");
+            } else {
+                hintBox.classList.add("hidden");
+            }
+
+            const feedbackBox = document.getElementById("feedback-box");
+            const nextBtn = document.getElementById("btn-next-level");
+            feedbackBox.classList.add("hidden");
+            nextBtn.classList.add("hidden");
+
+            const mcContainer = document.getElementById("mc-container");
+            const textForm = document.getElementById("answer-form");
+
+            if (isMC) {
+                textForm.classList.add("hidden");
+                mcContainer.classList.remove("hidden");
+                renderMultipleChoiceOptions(lvl, isSolved);
+                if (isSolved) showFeedback(true, "Bereits gelöst! 🎄", lvl.id < 100);
+            } else {
+                mcContainer.classList.add("hidden");
+                textForm.classList.remove("hidden");
+
+                const input = document.getElementById("answer-input");
+                input.classList.remove("border-red-400", "border-amber-500");
+
+                if (isSolved) {
+                    input.value = lvl.answers[0];
+                    showFeedback(true, "Bereits gelöst! 🎄", lvl.id < 100);
+                } else {
+                    input.value = "";
+                }
+
+                setTimeout(() => input.focus(), 50);
+            }
+        }
+
+        function renderMultipleChoiceOptions(lvl, isSolved) {
+            const grid = document.getElementById("mc-options-grid");
+            grid.innerHTML = "";
+            const letters = ["A", "B", "C", "D"];
+
+            lvl.options.forEach((optText, idx) => {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                const isCorrectOption = idx === lvl.correctIndex;
+
+                let baseCls = "w-full text-left px-4 py-3.5 rounded-xl border transition-all flex items-center gap-3.5 group ";
+                if (isSolved && isCorrectOption) {
+                    baseCls += "bg-emerald-950/80 border-amber-500 text-amber-200 font-semibold shadow-inner";
+                } else {
+                    baseCls += "bg-[#071c12] border-emerald-900 hover:border-amber-500 hover:bg-emerald-900/40 text-slate-100";
+                }
+                btn.className = baseCls;
+
+                const badge = document.createElement("span");
+                badge.textContent = letters[idx];
+                badge.className = isSolved && isCorrectOption
+                    ? "w-7 h-7 rounded-lg bg-amber-600 text-slate-950 text-xs font-bold flex items-center justify-center shrink-0 shadow"
+                    : "w-7 h-7 rounded-lg bg-emerald-950 group-hover:bg-amber-500 group-hover:text-slate-950 text-emerald-300 text-xs font-bold flex items-center justify-center shrink-0 transition-colors border border-emerald-800";
+
+                const label = document.createElement("span");
+                label.textContent = optText;
+                label.className = "text-sm sm:text-base leading-snug";
+
+                btn.appendChild(badge);
+                btn.appendChild(label);
+
+                btn.addEventListener("click", () => handleMultipleChoiceClick(idx, btn, badge));
+                grid.appendChild(btn);
+            });
+        }
+
+        function handleMultipleChoiceClick(selectedIdx, btnEl, badgeEl) {
+            const lvl = LEVELS[state.currentLevel - 1];
+            const isCorrect = selectedIdx === lvl.correctIndex;
+            const allButtons = document.querySelectorAll("#mc-options-grid button");
+
+            if (isCorrect) {
+                allButtons.forEach(b => b.disabled = true);
+                btnEl.className = "w-full text-left px-4 py-3.5 rounded-xl border bg-emerald-950/80 border-amber-500 text-amber-200 font-semibold flex items-center gap-3.5 shadow-inner";
+                badgeEl.className = "w-7 h-7 rounded-lg bg-amber-600 text-slate-950 text-xs font-bold flex items-center justify-center shrink-0 shadow";
+                handleLevelSuccess(lvl);
+            } else {
+                state.wrongAttempts += 1;
+                saveState();
+
+                btnEl.disabled = true;
+                btnEl.className = "w-full text-left px-4 py-3.5 rounded-xl border bg-red-950/60 border-red-600 text-red-200 flex items-center gap-3.5 animate-shake";
+                badgeEl.className = "w-7 h-7 rounded-lg bg-red-600 text-white text-xs font-bold flex items-center justify-center shrink-0";
+
+                showFeedback(false, "Leider falsch – probiere eine andere Option.", false);
+            }
+        }
+
+        function checkTextAnswer(rawValue) {
+            const cleaned = normalize(rawValue);
+            if (!cleaned) return;
+
+            const lvl = LEVELS[state.currentLevel - 1];
+            const input = document.getElementById("answer-input");
+            const isCorrect = lvl.answers.some(ans => normalize(ans) === cleaned);
+
+            if (isCorrect) {
+                input.classList.remove("border-red-500");
+                input.classList.add("border-amber-500");
+                handleLevelSuccess(lvl);
+            } else {
+                state.wrongAttempts += 1;
+                saveState();
+
+                input.classList.remove("border-amber-500");
+                input.classList.add("border-red-500", "animate-shake");
+                setTimeout(() => input.classList.remove("animate-shake"), 380);
+
+                showFeedback(false, "Leider falsch – versuche es noch einmal.", false);
+                input.select();
+            }
+        }
+
+        function handleLevelSuccess(lvl) {
+            if (!state.solvedLevels.includes(lvl.id)) {
+                state.solvedLevels.push(lvl.id);
+                saveState();
+            }
+            updateHeader();
+
+            if (autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+
+            if (lvl.id === 100) {
+                showFeedback(true, "Richtig! Alle 100 Level geschafft! 🌟", false);
+                autoAdvanceTimer = setTimeout(() => showVictoryScreen(), 850);
+            } else {
+                showFeedback(true, "Richtig! Weiter geht die Reise... 🎄", true);
+                autoAdvanceTimer = setTimeout(() => {
+                    if (state.currentLevel === lvl.id && !state.completed) {
+                        renderLevel(lvl.id + 1);
+                    }
+                }, 900);
+            }
+        }
+
+        function showFeedback(isSuccess, msg, showNext) {
+            const box = document.getElementById("feedback-box");
+            const text = document.getElementById("feedback-message");
+            const nextBtn = document.getElementById("btn-next-level");
+
+            box.classList.remove("hidden", "bg-emerald-950/80", "border-amber-500/50", "text-amber-200", "bg-red-950/70", "border-red-600/50", "text-red-200");
+
+            if (isSuccess) {
+                box.classList.add("bg-emerald-950/80", "border-amber-500/50", "text-amber-200");
+            } else {
+                box.classList.add("bg-red-950/70", "border-red-600/50", "text-red-200");
+            }
+
+            text.textContent = msg;
+            if (showNext) nextBtn.classList.remove("hidden");
+            else nextBtn.classList.add("hidden");
+        }
+
+        // ============================================================
+        // 3. ÜBERSICHTS-MODAL (10x10 GRID)
+        // ============================================================
+        function renderOverviewModal() {
+            const grid = document.getElementById("overview-grid");
+            grid.innerHTML = "";
+
+            const maxUnlocked = getMaxUnlockedLevel();
+            document.getElementById("overview-subtitle").textContent = `${state.solvedLevels.length} von 100 Leveln gelöst`;
+
+            const toggleBtn = document.getElementById("btn-toggle-tester");
+            const knob = document.getElementById("tester-knob");
+            toggleBtn.setAttribute("aria-checked", String(state.testerMode));
+            if (state.testerMode) {
+                toggleBtn.classList.remove("bg-emerald-950");
+                toggleBtn.classList.add("bg-amber-600");
+                knob.classList.remove("translate-x-0");
+                knob.classList.add("translate-x-5");
+            } else {
+                toggleBtn.classList.remove("bg-amber-600");
+                toggleBtn.classList.add("bg-emerald-950");
+                knob.classList.remove("translate-x-5");
+                knob.classList.add("translate-x-0");
+            }
+
+            for (let i = 1; i <= 100; i++) {
+                const isSolved = state.solvedLevels.includes(i);
+                const isCurrent = !state.completed && state.currentLevel === i;
+                const isUnlocked = i <= maxUnlocked;
+
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.textContent = i;
+                btn.disabled = !isUnlocked;
+
+                let cls = "h-9 rounded-lg text-xs font-semibold tabular-nums border transition flex items-center justify-center ";
+                if (isCurrent) {
+                    cls += "bg-amber-500 border-amber-400 text-slate-950 font-bold shadow";
+                } else if (isSolved) {
+                    cls += "bg-emerald-900/60 border-amber-600/50 text-amber-200 hover:bg-emerald-900";
+                } else if (isUnlocked) {
+                    cls += "bg-[#071c12] border-emerald-800 text-slate-100 hover:border-amber-500";
+                } else {
+                    cls += "bg-[#071c12]/40 border-emerald-950 text-emerald-800 cursor-not-allowed";
+                }
+
+                btn.className = cls;
+
+                if (isUnlocked) {
+                    btn.addEventListener("click", () => {
+                        document.getElementById("overview-modal").classList.add("hidden");
+                        renderLevel(i);
+                    });
+                }
+
+                grid.appendChild(btn);
+            }
+        }
+
+        // ============================================================
+        // 4. EVENT LISTENER
+        // ============================================================
+        document.addEventListener("DOMContentLoaded", () => {
+            document.getElementById("answer-form").addEventListener("submit", (e) => {
+                e.preventDefault();
+                checkTextAnswer(document.getElementById("answer-input").value);
+            });
+
+            document.getElementById("btn-hint-mc").addEventListener("click", toggleHint);
+            document.getElementById("btn-hint-text").addEventListener("click", toggleHint);
+
+            document.getElementById("btn-next-level").addEventListener("click", () => {
+                if (state.currentLevel < 100) renderLevel(state.currentLevel + 1);
+                else showVictoryScreen();
+            });
+
+            document.getElementById("btn-open-overview").addEventListener("click", () => {
+                renderOverviewModal();
+                document.getElementById("overview-modal").classList.remove("hidden");
+            });
+
+            document.getElementById("btn-close-overview").addEventListener("click", () => {
+                document.getElementById("overview-modal").classList.add("hidden");
+            });
+
+            document.getElementById("overview-modal").addEventListener("click", (e) => {
+                if (e.target.id === "overview-modal") document.getElementById("overview-modal").classList.add("hidden");
+            });
+
+            document.getElementById("btn-toggle-tester").addEventListener("click", () => {
+                state.testerMode = !state.testerMode;
+                saveState();
+                renderOverviewModal();
+            });
+
+            document.getElementById("btn-ask-reset").addEventListener("click", () => {
+                document.getElementById("reset-modal").classList.remove("hidden");
+            });
+
+            document.getElementById("btn-cancel-reset").addEventListener("click", () => {
+                document.getElementById("reset-modal").classList.add("hidden");
+            });
+
+            document.getElementById("btn-confirm-reset").addEventListener("click", () => {
+                localStorage.removeItem(STORAGE_KEY);
+                state = { ...defaultState };
+                saveState();
+                document.getElementById("reset-modal").classList.add("hidden");
+                document.getElementById("overview-modal").classList.add("hidden");
+                renderLevel(1);
+            });
+
+            document.getElementById("btn-victory-restart").addEventListener("click", () => {
+                localStorage.removeItem(STORAGE_KEY);
+                state = { ...defaultState };
+                saveState();
+                renderLevel(1);
+            });
+
+            // Kopieren des Lösungswortes
+            document.getElementById("btn-copy-secret").addEventListener("click", () => {
+                const inputField = document.getElementById("victory-secret-code");
+                inputField.select();
+                inputField.setSelectionRange(0, 99999);
+
+                try {
+                    document.execCommand('copy');
+                } catch (err) {
+                    navigator.clipboard.writeText(inputField.value);
+                }
+
+                const feedback = document.getElementById("copy-feedback");
+                feedback.classList.remove("hidden");
+                setTimeout(() => feedback.classList.add("hidden"), 2000);
+            });
+
+            if (state.completed && state.solvedLevels.length === 100) {
+                showVictoryScreen();
+            } else {
+                renderLevel(state.currentLevel);
+            }
+        });
+    </script>
+</body>
+</html>
